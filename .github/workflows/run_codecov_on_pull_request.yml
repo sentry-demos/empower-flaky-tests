@@ -7,11 +7,11 @@ on:
   pull_request:
 
 jobs:
-  codecov:
+  codecov-frontend-tests:
     runs-on: ubuntu-20.04
-
+    
     steps:
-      - name: Check out this repository code
+      - name: Check out repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -20,34 +20,65 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "18"
-# Need to run "npm run build" command for bundle analysis: https://docs.codecov.com/docs/webpack-quick-start
+          
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v3
+        with:
+          path: ./react/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('./react/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # Need to run "npm run build" command for bundle analysis: https://docs.codecov.com/docs/webpack-quick-start
       - name: Build React and run tests
         run: |
           CI=false ./build.sh
           npm test -- --coverage --reporters=jest-junit || true
         working-directory: ./react
-      - uses: codecov/codecov-action@v5
+        
+      - name: Upload frontend coverage
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: frontend
           verbose: true
+          
+  codecov-backend-tests:
+    runs-on: ubuntu-20.04
+    
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+          
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('./flask/src/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
-      - name: Run Python Tests
+      - name: Install and run Python tests
         run: |
-          pip install -U pytest
-          pip install pytz
-          pip install pytest-codecov
+          pip install -U pytest pytz pytest-codecov
           pytest --cov=. --cov-report=xml --junitxml=junit.xml -o junit_family=legacy
         working-directory: ./flask/src
       
-      - name: Upload coverage results to Codecov
+      - name: Upload backend coverage
         uses: codecov/codecov-action@v5
         with:
           flags: api
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
 
-      - name: Upload test results to Codecov
+      - name: Upload test results
         if: ${{ !cancelled() }}
         uses: codecov/test-results-action@v1
         with:
@@ -55,4 +86,5 @@ jobs:
           file: /home/runner/work/empower-flaky-tests/empower-flaky-tests/flask/src/junit.xml
           disable_search: true
           
-      - run: echo "Job status is ${{ job.status }}."
+      - name: Report job status
+        run: echo "Job status is ${{ job.status }}."
