@@ -23,7 +23,7 @@
     "redux": "~4.1.0",
     "redux-logger": "~3.0.6",
     "web-vitals": "~1.0.1",
-    "dompurify": "^3.1.7"
+    "dompurify": "^3.2.4"
   },
   "scripts": {
     "dev": "NODE_OPTIONS='--dns-result-order=ipv4first' next dev",
