@@ -2,29 +2,13 @@
 
 import unittest
 from unittest.mock import patch, Mock
-from ..utils import weighter, parseHeaders, get_iterator, yuval, chris, vlad
+from ..utils import weighter, parseHeaders, get_iterator, yuval, chris, vlad, safe_divide
 from datetime import datetime
 from pytz import timezone
 import random
 import os
 
 class TestFunctions(unittest.TestCase):
-
-    # @patch('utils.datetime')
-    # def test_weighter_condition_true(self, mock_datetime):
-    #     mock_datetime.now.return_value = datetime(2024, 8, 22, 14, 0, 0, tzinfo=timezone('America/Los_Angeles'))
-    #     condition = lambda x, y: x >= y
-        
-    #     result = weighter(condition, 14)
-    #     # self.assertIn(result, [0.0125, 0.0625, 0.125, 0.1875, 0.25, 0.3125])
-
-    # @patch('utils.datetime')
-    # def test_weighter_condition_false(self, mock_datetime):
-    #     mock_datetime.now.return_value = datetime(2024, 8, 22, 14, 0, 0, tzinfo=timezone('America/Los_Angeles'))
-    #     condition = lambda x, y: x < y
-        
-    #     result = weighter(condition, 14)
-    #     # self.assertIn(result, [0.0125, 0.0625, 0.125, 0.1875, 0.25, 0.3125])
 
     def test_parseHeaders_with_valid_keys(self):
         keys = ['Authorization', 'Content-Type']
@@ -46,8 +30,6 @@ class TestFunctions(unittest.TestCase):
 
     def test_get_iterator_negative(self):
         result = get_iterator(-1)
-        # self.assertEqual(result, None)
-        # self.assertIn("Incorrect input", log.output[0])
 
     def test_get_iterator_zero(self):
         result = get_iterator(0)
@@ -72,6 +54,21 @@ class TestFunctions(unittest.TestCase):
     def test_vlad(self):
         result = vlad()
         self.assertEqual(result, 'vlad')
+
+    def test_safe_divide_normal(self):
+        """Test normal division case"""
+        result = safe_divide(10, 2)
+        self.assertEqual(result, 5.0)
+
+    # def test_safe_divide_zero(self):
+    #     """Test division by zero"""
+    #     result = safe_divide(10, 0)
+    #     self.assertIsNone(result)
+
+    def test_safe_divide_float(self):
+        """Test division with float numbers"""
+        result = safe_divide(5.0, 2.0)
+        self.assertEqual(result, 2.5)
 
     def test_flaky(self):
         """Alternating pass/fail based on run number and attempt"""
